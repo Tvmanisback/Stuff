@@ -1,0 +1,40 @@
+name: Build EagleTalk
+on:
+  push:
+    paths:
+      - 'EagleTalk/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    paths:
+      - 'EagleTalk/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Build standalone relay JAR
+        working-directory: EagleTalk/relay
+        run: mvn --batch-mode --no-transfer-progress clean package
+      - name: Package Chrome extension ZIP
+        run: |
+          mkdir -p dist/extension
+          cp EagleTalk/extension/manifest.json EagleTalk/extension/content.js dist/extension/
+          (cd dist && zip -r eagletalk-chrome-extension.zip extension)
+          cp EagleTalk/relay/target/eagletalk-relay.jar dist/eagletalk-relay.jar
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: eagletalk-build
+          path: dist/*
+          if-no-files-found: error
