@@ -1,9 +1,10 @@
 (() => {
   // Runs in the page's MAIN world so it can observe the browser voice APIs used by
   // Eaglercraft clients. EaglerX/client versions may use different internals; this
-  // deliberately does not create a separate relay or replace the game's signaling.
+  // does not create a separate relay or replace the game's signaling.
   if (window.__eagleTalkVoiceHook) return;
   window.__eagleTalkVoiceHook = true;
+  const localTracks = new Set();
   const state = window.__eagleTalkState = { selfMuted: false, peers: new Map(), nextPeerId: 1 };
   const send = (type, detail = {}) => window.postMessage({ __eagleTalk: true, type, ...detail }, location.origin);
   const originalGetUserMedia = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices);
@@ -12,8 +13,9 @@
       const stream = await originalGetUserMedia(constraints);
       if (constraints?.audio) {
         for (const track of stream.getAudioTracks()) {
+          localTracks.add(track);
           track.enabled = !state.selfMuted;
-          track.addEventListener('ended', () => send('local-track-ended'));
+          track.addEventListener('ended', () => localTracks.delete(track));
         }
         send('local-mic-available');
       }
@@ -28,13 +30,9 @@
         const id = 'Peer ' + state.nextPeerId++;
         state.peers.set(id, { pc, muted: false });
         send('peer-added', { id });
-        const applyMute = event => {
-          const streams = event.streams || [];
-          for (const stream of streams) for (const track of stream.getAudioTracks()) track.enabled = !state.peers.get(id)?.muted;
-          // Some clients provide a streamless track event.
+        pc.addEventListener('track', event => {
           if (event.track?.kind === 'audio') event.track.enabled = !state.peers.get(id)?.muted;
-        };
-        pc.addEventListener('track', applyMute);
+        });
         const remove = () => { state.peers.delete(id); send('peer-removed', { id }); };
         pc.addEventListener('connectionstatechange', () => { if (['closed','failed'].includes(pc.connectionState)) remove(); });
         return pc;
@@ -47,7 +45,7 @@
     const { type, id, value } = event.data;
     if (type === 'set-self-muted') {
       state.selfMuted = !!value;
-      // Tracks acquired after the setting changes are handled by getUserMedia above.
+      for (const track of localTracks) track.enabled = !state.selfMuted;
       send('self-muted-changed', { value: state.selfMuted });
     } else if (type === 'set-peer-muted' && state.peers.has(id)) {
       const entry = state.peers.get(id); entry.muted = !!value;
