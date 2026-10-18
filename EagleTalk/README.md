@@ -1,37 +1,47 @@
 # EagleTalk for EaglercraftX
 
-EagleTalk is a small Bukkit/Paper/Spigot plugin that helps administrators configure **EaglerXServer's built-in voice service**. It does not run a separate voice relay.
+EagleTalk is a Bukkit/Paper/Spigot management plugin for **EaglerXServer's native voice chat**. The actual microphone capture, audio transport, and in-game voice controls are supplied by EaglerXServer and a compatible EaglercraftX client. EagleTalk does not implement a separate audio relay.
 
 ## Requirements
 
 - Java 17+
-- Paper, Spigot, or Bukkit compatible with the EaglerXServer Bukkit API
-- EaglerXServer installed in the same server's `plugins` folder
-- A compatible Eaglercraft client
+- A Bukkit/Spigot/Paper server version compatible with the installed EaglerXServer build
+- EaglerXServer installed as a server plugin
+- A compatible EaglercraftX client with native voice support
+- Permission `eagletalk.admin` (operators have it by default) to change the voice setting
 
-EaglerXServer currently notes that Bukkit plugin support is not maintained for versions above 1.17. Check the upstream documentation for compatibility with your exact server version.
+EaglerXServer's upstream documentation says Bukkit support is not maintained for versions above 1.17; check compatibility with your exact server version.
 
 ## Build artifacts
 
 The GitHub Actions workflow at `.github/workflows/build.yml` builds:
-- `eagletalk-plugin.jar` — Paper/Bukkit/Spigot setup-helper plugin
-- `eagletalk-chrome-extension.zip` — activation-only Chrome extension (no voice UI, microphone access, networking, or audio handling)
+- `eagletalk-plugin.jar` — EagleTalk server configuration plugin
+- `eagletalk-chrome-extension.zip` — companion extension package; it does not itself implement microphone/audio transport
 
-## Install and configure
+## Install
 
-1. Install EaglerXServer in the server's `plugins` folder.
-2. Put `eagletalk-plugin.jar` in the same `plugins` folder.
-3. Start the server once and open `plugins/EaglercraftXServer/settings.cfg`.
-4. Enable `voice_service.enable_voice_service` and configure the permitted worlds as appropriate. EaglerXServer's setting is disabled by default.
-5. Restart the server and test with a compatible Eaglercraft client.
-6. Use `/voice status` to check that the dependency and settings file are present, or `/voice setup` for setup instructions.
+1. Install EaglerXServer on the server using its official installation instructions.
+2. Put `eagletalk-plugin.jar` in the server's `plugins` folder.
+3. Start the server and let EaglerXServer create its settings file.
+4. Run `/voice status` in-game or from the console.
+5. As an operator, run `/voice enable`.
+6. Fully restart the server. EaglerXServer reads the setting during startup.
+7. Join using a compatible EaglercraftX client and use the voice controls already included in that client.
 
-## Client controls and extension
+Commands:
+- `/voice status` — report dependency and setting status
+- `/voice enable` — set `voice_service.enable_voice_service` to true
+- `/voice disable` — set `voice_service.enable_voice_service` to false
+- `/voice setup` — show setup instructions
 
-The extension only dispatches an `eagletalk:activate` activation event. It does not inject a voice UI or implement voice transport. The browser extension alone cannot create a client mod; it requires a compatible client-side integration to listen for that event. Use the voice controls supplied by your Eaglercraft client to self-mute or mute another player.
+EagleTalk searches for EaglerXServer's `settings.cfg`, `settings.gson`, `settings.json`, `settings.yaml`, `settings.yml`, or `settings.toml` file and updates the `enable_voice_service` boolean when it can identify it. If the setting cannot be found, edit it manually in the settings file. Changes require a full restart.
 
-## Important limitations
+## Client / Chrome extension note
 
-This plugin is a setup helper, not a replacement for EaglerXServer's voice implementation. It does not claim to implement server-enforced per-player voice muting or a custom client UI. EaglerXServer's native voice service uses WebRTC-related signaling and must be enabled/configured in EaglerXServer itself. Review the upstream security warnings before enabling voice on a public server.
+A Chrome extension cannot turn an arbitrary Eaglercraft page into a voice client merely by dispatching a custom event. Actual voice functionality depends on EaglerXServer and a client that implements the Eaglercraft voice protocol. The extension is not required for native voice chat, and it does not capture microphone audio.
 
-Official documentation: https://github.com/lax1dude/eaglerxserver
+## Security note
+
+EaglerXServer documents its voice service as disabled by default and warns that the voice protocol can be stressed or abused, especially on large public servers. Enable it only if you understand and accept that risk. Voice availability also depends on the client build and the hosting setup.
+
+Official upstream documentation: https://github.com/lax1dude/eaglerxserver
