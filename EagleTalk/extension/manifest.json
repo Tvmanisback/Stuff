@@ -1,13 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "EagleTalk for Eaglercraft",
-  "version": "1.0.0",
-  "description": "Optional push-to-talk voice overlay for compatible Eaglercraft browser clients.",
+  "name": "EagleTalk for EaglerX",
+  "version": "2.0.0",
+  "description": "Optional voice controls for compatible Eaglercraft clients using EaglerXServer's native voice service.",
   "permissions": ["storage"],
   "host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
-  "content_scripts": [{
-    "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
-    "js": ["content.js"],
-    "run_at": "document_idle"
-  }]
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["voice-hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }
