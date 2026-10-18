@@ -1,14 +1,14 @@
 name: EagleTalk
-version: 1.0.0
+version: 1.1.0
 main: dev.tvman.eagletalk.EagleTalkPlugin
-description: Setup helper for EaglerXServer's native voice chat.
+description: Enables and manages EaglerXServer's native Eaglercraft voice service.
 author: Tvman
 depend: [EaglercraftXServer]
 commands:
   voice:
-    description: EagleTalk native voice chat setup and status.
-    usage: /voice [status|setup]
+    description: EagleTalk voice chat configuration and status.
+    usage: /voice [status|enable|disable|setup|help]
 permissions:
   eagletalk.admin:
-    description: View EagleTalk server setup instructions.
+    description: Enable or disable the EaglerXServer native voice service.
     default: op
