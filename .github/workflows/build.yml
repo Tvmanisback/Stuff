@@ -23,15 +23,15 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Build standalone relay JAR
-        working-directory: EagleTalk/relay
+      - name: Build Bukkit/Paper/Spigot plugin JAR
+        working-directory: EagleTalk/plugin
         run: mvn --batch-mode --no-transfer-progress clean package
-      - name: Package Chrome extension ZIP
+      - name: Package activation-only Chrome extension ZIP
         run: |
           mkdir -p dist/extension
           cp EagleTalk/extension/manifest.json EagleTalk/extension/content.js dist/extension/
           (cd dist && zip -r eagletalk-chrome-extension.zip extension)
-          cp EagleTalk/relay/target/eagletalk-relay.jar dist/eagletalk-relay.jar
+          cp EagleTalk/plugin/target/eagletalk-plugin.jar dist/eagletalk-plugin.jar
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
